@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-canvas: #ffffff;
+  --color-subtle: #f6f8fa;
+  --color-gh: #d0d7de;
+  --color-slate-50: #f6f8fa;
+  --color-slate-300: #d0d7de;
+  --color-brand: #4f46e5;
+  --color-brand-deep: #4338ca;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+  }
+
+  body {
+    margin: 0;
+    min-height: 100svh;
+    background: var(--color-canvas);
+    color: #0f172a;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  background: rgb(15 23 42 / 0.5);
+  backdrop-filter: blur(2px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+dialog.modal-window[open] {
+  max-height: min(90dvh, 960px);
+}
+
+.progress-editorial {
+  appearance: none;
+  border: 0 solid;
+  overflow: clip;
+  border-radius: 1e5px;
+  background: #e8ebef;
+  inline-size: 100%;
+  block-size: 0.5rem;
+}
+
+.progress-editorial::-webkit-progress-bar {
+  background: transparent;
+}
+
+.progress-editorial::-webkit-progress-value {
+  background: var(--color-brand);
+  border-radius: 1e5px;
+  transition: inline-size 0.3s ease;
+}
+
+.progress-editorial::-moz-progress-bar {
+  background: var(--color-brand);
+  border-radius: 1e5px;
+  transition: inline-size 0.3s ease;
+}
+
+.diagnosis-table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(520px, 75dvh);
+  container-type: inline-size;
+}
+
+.diagnosis-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  inline-size: 100%;
+  font-size: 0.8125rem;
+}
+
+.diagnosis-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background: #f6f8fa;
+}
+
+.diagnosis-table thead th {
+  padding: 0.65rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+  white-space: nowrap;
+  border-block-end: 1px solid #d0d7de;
+}
+
+.diagnosis-table tbody th,
+.diagnosis-table tbody td {
+  padding: 0.65rem 1rem;
+  border-block-end: 1px solid #eaeef2;
+  white-space: nowrap;
+}
+
+.diagnosis-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  background: #ffffff;
+  text-align: left;
+  font-weight: 600;
+}
+
+@container (max-width: 620px) {
+  .diagnosis-table,
+  .diagnosis-table thead,
+  .diagnosis-table tbody,
+  .diagnosis-table tr,
+  .diagnosis-table th,
+  .diagnosis-table td {
+    display: block;
+  }
+
+  .diagnosis-table thead {
+    display: none;
+  }
+
+  .diagnosis-table tr {
+    margin-block-end: 0.75rem;
+    padding: 0.4rem;
+    border: 1px solid #d0d7de;
+    border-radius: 0.375rem;
+    background: #ffffff;
+  }
+
+  .diagnosis-table tbody th {
+    position: static;
+    background: transparent;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .diagnosis-table tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.3rem 0.75rem;
+    white-space: normal;
+  }
+
+  .diagnosis-table tbody td::before {
+    content: attr(data-label) ': ';
+    color: #64748b;
+    font-size: 0.7rem;
+    flex: none;
+  }
+}

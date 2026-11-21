@@ -1,0 +1,51 @@
+import * as Lucide from 'lucide-react'
+
+const icons = {
+  logo: Lucide.Braces,
+  menu: Lucide.Menu,
+  close: Lucide.X,
+  plus: Lucide.Plus,
+  edit: Lucide.Pencil,
+  trash: Lucide.Trash2,
+  search: Lucide.Search,
+  upload: Lucide.UploadCloud,
+  check: Lucide.Check,
+  alert: Lucide.AlertTriangle,
+  info: Lucide.Info,
+  shield: Lucide.ShieldCheck,
+  users: Lucide.Users,
+  chart: Lucide.BarChart3,
+  settings: Lucide.Settings,
+  external: Lucide.ExternalLink,
+  file: Lucide.FileCode2,
+  sparkles: Lucide.Sparkles,
+  brain: Lucide.Brain,
+  chevronRight: Lucide.ChevronRight,
+  chevronLeft: Lucide.ChevronLeft,
+  lock: Lucide.Lock,
+  eye: Lucide.Eye,
+  logout: Lucide.LogOut,
+  server: Lucide.Server,
+  database: Lucide.Database,
+  robot: Lucide.Bot,
+  clock: Lucide.Clock,
+  code: Lucide.Code2,
+  branch: Lucide.GitBranch,
+  layers: Lucide.Layers3,
+  network: Lucide.Network,
+  workflow: Lucide.Workflow,
+  userCheck: Lucide.UserCheck,
+  activity: Lucide.Activity,
+  sliders: Lucide.SlidersHorizontal,
+  message: Lucide.MessageSquareText,
+  fileText: Lucide.FileText,
+  folder: Lucide.FolderGit2,
+  circleCheck: Lucide.CircleCheck,
+  circleAlert: Lucide.CircleAlert,
+  terminal: Lucide.Terminal,
+}
+
+export default function Icon({ name, className = 'h-4 w-4', strokeWidth = 1.8, ...props }) {
+  const Component = icons[name] ?? Lucide.Info
+  return <Component className={className} strokeWidth={strokeWidth} aria-hidden="true" focusable="false" {...props} />
+}
