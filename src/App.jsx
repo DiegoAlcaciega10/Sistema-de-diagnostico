@@ -10,7 +10,7 @@ import TeacherDashboard from './pages/TeacherDashboard'
 
 export default function App() {
   const store = useDiagnosisStore()
-  const auth = useAuth(store.users)
+  const auth = useAuth()
   const [view, setView] = useState('landing')
   const [adminTab, setAdminTab] = useState(null)
   const [selectedGroupId, setSelectedGroupId] = useState(store.groups[0]?.id)
@@ -43,8 +43,8 @@ export default function App() {
     [auth.user],
   )
 
-  const handleLogin = (email, password) => {
-    const account = auth.login(email, password)
+  const handleLogin = async (email, password) => {
+    const account = await auth.login(email, password)
     if (!account) return false
     setAdminTab(null)
     setView(account.role === ROLES.ADMIN ? 'admin' : 'teacher')
@@ -59,6 +59,9 @@ export default function App() {
   }
 
   const renderView = () => {
+    if (auth.isRestoring) {
+      return <p className="px-4 py-16 text-center text-sm text-slate-500">Verificando la sesión…</p>
+    }
     if (view === 'login') return <LoginPage onLogin={handleLogin} error={auth.error} onNavigate={navigate} />
     if (view === 'admin' && auth.user?.role === ROLES.ADMIN) {
       return (
@@ -92,7 +95,7 @@ export default function App() {
       <footer className="border-t border-slate-300 bg-slate-50">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-[11px] text-slate-500 sm:px-6 lg:px-8">
           <p>Prototipo académico · estimaciones pedagógicas, no calificaciones.</p>
-          <p className="font-mono">React · Tailwind CSS · datos simulados en memoria</p>
+          <p className="font-mono">React · Tailwind CSS · autenticación con API REST · resto de datos simulados</p>
         </div>
       </footer>
     </div>

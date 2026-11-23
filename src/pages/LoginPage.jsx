@@ -4,22 +4,18 @@ import GhBox from '../components/ui/GhBox'
 import Icon from '../components/ui/Icon'
 import MethodologicalBanner from '../components/ui/MethodologicalBanner'
 
-const demos = [
-  { label: 'Demo Docente', email: 'docente@diagnostico.edu', password: 'docente123' },
-  { label: 'Demo Administrador', email: 'admin@diagnostico.edu', password: 'admin123' },
-]
-
 export default function LoginPage({ onLogin, error, onNavigate }) {
   const [credentials, setCredentials] = useState({ email: '', password: '' })
+  const [submitting, setSubmitting] = useState(false)
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault()
-    onLogin(credentials.email, credentials.password)
-  }
-
-  const handleDemoLogin = (demo) => {
-    setCredentials({ email: demo.email, password: demo.password })
-    onLogin(demo.email, demo.password)
+    setSubmitting(true)
+    try {
+      await onLogin(credentials.email, credentials.password)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -41,7 +37,7 @@ export default function LoginPage({ onLogin, error, onNavigate }) {
 
       <GhBox
         title="Iniciar sesión"
-        subtitle="Use las credenciales de demostración o escriba las suyas."
+        subtitle="Use la cuenta asignada por el administrador del sistema."
         bodyClassName="p-5 sm:p-6"
       >
         <form onSubmit={submit} className="space-y-4">
@@ -78,25 +74,10 @@ export default function LoginPage({ onLogin, error, onNavigate }) {
             </p>
           ) : null}
 
-          <Button type="submit" className="w-full">
-            Entrar
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? 'Verificando…' : 'Entrar'}
           </Button>
         </form>
-
-        <div className="mt-6 border-t border-slate-300 pt-5">
-          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Accesos rápidos</p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {demos.map((demo) => (
-              <Button key={demo.label} variant="secondary" size="sm" onClick={() => handleDemoLogin(demo)}>
-                {demo.label}
-              </Button>
-            ))}
-          </div>
-          <p className="mt-4 text-[11px] leading-relaxed text-slate-500">
-            Cuenta inactiva de prueba: <code className="font-mono text-slate-800">inactivo@diagnostico.edu</code> ·{' '}
-            <code className="font-mono text-slate-800">docente123</code>
-          </p>
-        </div>
 
         <button
           type="button"

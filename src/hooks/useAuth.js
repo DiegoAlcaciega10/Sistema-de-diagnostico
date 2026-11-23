@@ -1,44 +1,65 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ROLES } from '../data/mockData'
+import { ApiError, authApi, sessionToken } from '../services/apiClient'
 
-export function useAuth(users) {
-  const [userId, setUserId] = useState(null)
+// El backend usa los roles "administrador" y "docente"; la interfaz usa las constantes de ROLES.
+const ROLE_FROM_API = { administrador: ROLES.ADMIN, docente: ROLES.TEACHER }
+
+const toUiUser = (apiUser) => ({
+  id: apiUser.id,
+  name: apiUser.nombre,
+  email: apiUser.correo,
+  role: ROLE_FROM_API[apiUser.rol],
+  active: apiUser.activo,
+})
+
+export function useAuth() {
+  const [user, setUser] = useState(null)
   const [error, setError] = useState('')
-  const user = users.find((candidate) => candidate.id === userId) ?? null
+  const [isRestoring, setIsRestoring] = useState(() => Boolean(sessionToken.read()))
 
-  const login = useCallback(
-    (email, password) => {
-      const normalized = email.trim().toLowerCase()
-      const account = users.find((candidate) => candidate.email.toLowerCase() === normalized)
+  // Restaura la sesión al recargar la página si el token sigue siendo válido.
+  useEffect(() => {
+    if (!sessionToken.read()) return undefined
+    let cancelled = false
+    authApi
+      .currentSession()
+      .then((apiUser) => {
+        if (!cancelled) setUser(toUiUser(apiUser))
+      })
+      .catch(() => sessionToken.clear())
+      .finally(() => {
+        if (!cancelled) setIsRestoring(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
-      if (!account) {
-        setError('No encontramos una cuenta con ese correo electrónico.')
-        return null
-      }
-      if (!account.active) {
-        setError('La cuenta está inactiva. Solicite su reactivación al administrador.')
-        return null
-      }
-      if (account.password !== password) {
-        setError('La contraseña no es correcta.')
-        return null
-      }
-
-      setUserId(account.id)
-      setError('')
+  const login = useCallback(async (email, password) => {
+    setError('')
+    try {
+      const { token, usuario } = await authApi.login(email.trim(), password)
+      sessionToken.save(token)
+      const account = toUiUser(usuario)
+      setUser(account)
       return account
-    },
-    [users],
-  )
+    } catch (caught) {
+      setError(caught instanceof ApiError ? caught.message : 'No se pudo iniciar sesión.')
+      return null
+    }
+  }, [])
 
   const logout = useCallback(() => {
-    setUserId(null)
+    sessionToken.clear()
+    setUser(null)
     setError('')
   }, [])
 
   return {
     user,
     error,
+    isRestoring,
     login,
     logout,
     isAuthenticated: user !== null,

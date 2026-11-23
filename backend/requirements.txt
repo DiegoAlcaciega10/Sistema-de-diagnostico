@@ -1,0 +1,4 @@
+# fastapi[standard] incluye uvicorn (servidor) y httpx (cliente de pruebas).
+fastapi[standard]
+psycopg[binary]
+PyJWT
