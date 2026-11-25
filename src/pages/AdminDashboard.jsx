@@ -6,13 +6,16 @@ import ServicesPanel from '../components/admin/ServicesPanel'
 import DiagnosisWorkspace from '../components/domain/DiagnosisWorkspace'
 import PageHeader from '../components/layout/PageHeader'
 import RepoTabsHeader from '../components/layout/RepoTabsHeader'
+import { useAccounts } from '../hooks/useAccounts'
 
 export default function AdminDashboard({ store, currentUser, initialTab, selectedGroupId, onSelectGroup }) {
   const [activeTab, setActiveTab] = useState(initialTab ?? 'cuentas')
   const [selectedStudent, setSelectedStudent] = useState(null)
+  // Las cuentas vienen del backend; store.users (simulado) se conserva para los grupos de ejemplo.
+  const accounts = useAccounts()
 
   const tabs = [
-    { id: 'cuentas', label: 'Cuentas y roles', icon: 'users', count: store.users.length },
+    { id: 'cuentas', label: 'Cuentas y roles', icon: 'users', count: accounts.accounts.length },
     { id: 'servicios', label: 'Servicios', icon: 'server', count: store.services.length },
     { id: 'criterios', label: 'Criterios y umbrales', icon: 'settings', count: store.criteria.length },
     { id: 'prompts', label: 'Prompts de IA', icon: 'robot', count: store.prompts.length },
@@ -38,12 +41,15 @@ export default function AdminDashboard({ store, currentUser, initialTab, selecte
   const panels = {
     cuentas: (
       <AccountsPanel
-        users={store.users}
+        users={accounts.accounts}
+        status={accounts.status}
+        loadError={accounts.loadError}
+        onReload={accounts.reload}
         currentUser={currentUser}
-        onAdd={store.addUser}
-        onUpdate={store.updateUser}
-        onToggle={(id, active) => store.updateUser(id, { active })}
-        onDelete={store.deleteUser}
+        onAdd={accounts.createAccount}
+        onUpdate={accounts.updateAccount}
+        onToggle={accounts.setAccountActive}
+        onDelete={accounts.deleteAccount}
       />
     ),
     servicios: <ServicesPanel services={store.services} />,

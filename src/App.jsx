@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react'
+import SessionExpiryBanner from './components/layout/SessionExpiryBanner'
 import TopNavbar from './components/layout/TopNavbar'
 import { ROLES } from './data/mockData'
 import { useAuth } from './hooks/useAuth'
@@ -52,8 +53,8 @@ export default function App() {
     return true
   }
 
-  const handleLogout = () => {
-    auth.logout()
+  const handleLogout = async () => {
+    await auth.logout()
     setAdminTab(null)
     setView('landing')
   }
@@ -62,7 +63,10 @@ export default function App() {
     if (auth.isRestoring) {
       return <p className="px-4 py-16 text-center text-sm text-slate-500">Verificando la sesión…</p>
     }
-    if (view === 'login') return <LoginPage onLogin={handleLogin} error={auth.error} onNavigate={navigate} />
+    // También se muestra el ingreso si la sesión expira dentro de un panel protegido.
+    if (view === 'login' || ((view === 'admin' || view === 'teacher') && !auth.user)) {
+      return <LoginPage onLogin={handleLogin} error={auth.error} onNavigate={navigate} />
+    }
     if (view === 'admin' && auth.user?.role === ROLES.ADMIN) {
       return (
         <AdminDashboard
@@ -91,6 +95,9 @@ export default function App() {
   return (
     <div className="flex min-h-dvh flex-col bg-white">
       <TopNavbar user={auth.user} breadcrumb={breadcrumb} onNavigate={navigate} onLogout={handleLogout} />
+      {auth.user && auth.isExpiringSoon ? (
+        <SessionExpiryBanner expiresAt={auth.expiresAt} onRenew={auth.renew} />
+      ) : null}
       <div className="flex-1">{renderView()}</div>
       <footer className="border-t border-slate-300 bg-slate-50">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-4 text-[11px] text-slate-500 sm:px-6 lg:px-8">

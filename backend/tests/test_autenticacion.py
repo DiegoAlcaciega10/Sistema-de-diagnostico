@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -64,7 +66,8 @@ def test_entradas_invalidas_en_login(cliente: TestClient, cuerpo: dict[str, str]
 def test_rutas_protegidas_exigen_sesion(cliente: TestClient, cabecera: str | None) -> None:
     cabeceras = {"Authorization": cabecera} if cabecera else {}
     for metodo, ruta in [("GET", "/api/auth/sesion"), ("GET", "/api/usuarios"),
-                         ("POST", "/api/usuarios"), ("PATCH", "/api/usuarios/1")]:
+                         ("POST", "/api/usuarios"), ("PATCH", "/api/usuarios/1"),
+                         ("DELETE", "/api/usuarios/1")]:
         respuesta = cliente.request(metodo, ruta, headers=cabeceras, json={})
         assert respuesta.status_code == 401, ruta
 
@@ -73,7 +76,9 @@ def test_token_expirado_o_de_cuenta_desactivada(
     cliente: TestClient, crear_cuenta  # type: ignore[no-untyped-def]
 ) -> None:
     usuario_id = crear_cuenta("docente@espe.edu.ec")
-    expirado = emitir_token(usuario_id, "docente", SECRETO_PRUEBAS, minutos_validez=-1)
+    hace_dos_horas = datetime.now(timezone.utc) - timedelta(hours=2)
+    expirado = emitir_token(usuario_id, "docente", "sesion-x", SECRETO_PRUEBAS,
+                            hace_dos_horas, hace_dos_horas + timedelta(hours=1))
     assert cliente.get("/api/auth/sesion", headers={"Authorization": f"Bearer {expirado}"}).status_code == 401
 
     administrador = iniciar(cliente, correo=_crear_admin(crear_cuenta))
@@ -135,7 +140,8 @@ def test_hash_y_token() -> None:
     assert not verificar_contrasena("otra-clave-larga", hash_guardado)
     with pytest.raises(ValueError):
         generar_hash("corta")
-    token = emitir_token(7, "docente", SECRETO_PRUEBAS, 5)
-    assert leer_token(token, SECRETO_PRUEBAS) == 7
+    ahora = datetime.now(timezone.utc)
+    token = emitir_token(7, "docente", "sesion-1", SECRETO_PRUEBAS, ahora, ahora + timedelta(minutes=5))
+    assert leer_token(token, SECRETO_PRUEBAS) == (7, "sesion-1")
     with pytest.raises(TokenInvalido):
         leer_token(token, "otro-secreto" * 4)

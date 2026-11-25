@@ -25,10 +25,12 @@ class NuevoUsuario(_Entrada):
     correo: str = Field(min_length=3, max_length=254, pattern=PATRON_CORREO)
     contrasena: str = Field(min_length=10, max_length=200)
     rol: Rol
+    activo: bool = True
 
 
 class CambiosUsuario(_Entrada):
     nombre: Optional[str] = Field(default=None, min_length=1, max_length=120)
+    correo: Optional[str] = Field(default=None, min_length=3, max_length=254, pattern=PATRON_CORREO)
     rol: Optional[Rol] = None
     activo: Optional[bool] = None
     contrasena: Optional[str] = Field(default=None, min_length=10, max_length=200)
@@ -46,6 +48,7 @@ class Usuario(BaseModel):
 class Sesion(BaseModel):
     token: str
     tipo: Literal["Bearer"] = "Bearer"
+    expira_en: datetime
     usuario: Usuario
 
 

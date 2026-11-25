@@ -13,7 +13,7 @@ backend/
     config.py          configuración desde variables de entorno o backend/.env
     db.py              conexión a PostgreSQL
     migraciones.py     aplica los archivos de app/sql/ en orden
-    sql/               esquema de la base (001_usuarios.sql)
+    sql/               esquema de la base (001_usuarios.sql, 002_sesiones.sql)
     seguridad.py       hash de contraseñas (scrypt) y tokens JWT
     repositorios/      consultas SQL
     servicios/         reglas de autenticación y gestión de cuentas
@@ -45,11 +45,14 @@ Comprobación: `http://localhost:8000/api/salud` debe responder `{"estado":"ok",
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
 | GET | `/api/salud` | público | Verifica la conexión con PostgreSQL |
-| POST | `/api/auth/login` | público | `{correo, contrasena}` → `{token, tipo, usuario}` |
+| POST | `/api/auth/login` | público | `{correo, contrasena}` → `{token, tipo, expira_en, usuario}` |
+| POST | `/api/auth/logout` | autenticado | Cierra la sesión del token (204); el token deja de aceptarse |
+| POST | `/api/auth/renovar` | autenticado | Reemplaza la sesión por una nueva con otro vencimiento |
 | GET | `/api/auth/sesion` | autenticado | Usuario de la sesión (restaura la sesión en el frontend) |
 | GET | `/api/usuarios` | administrador | Lista de cuentas |
-| POST | `/api/usuarios` | administrador | Crea una cuenta `{nombre, correo, contrasena, rol}` |
-| PATCH | `/api/usuarios/{id}` | administrador | Cambia `nombre`, `rol`, `activo` o `contrasena` |
+| POST | `/api/usuarios` | administrador | Crea una cuenta `{nombre, correo, contrasena, rol, activo}` (`activo` opcional, por defecto `true`) |
+| PATCH | `/api/usuarios/{id}` | administrador | Cambia `nombre`, `correo`, `rol`, `activo` o `contrasena` |
+| DELETE | `/api/usuarios/{id}` | administrador | Elimina una cuenta sin información asociada (204) |
 
 Las rutas protegidas requieren `Authorization: Bearer <token>`. Los errores responden
 `{"detail": "mensaje"}` con 401 (sin sesión o credenciales incorrectas), 403 (cuenta inactiva o rol
@@ -58,8 +61,11 @@ sin permiso), 404, 409 (correo repetido o cambio no permitido) o 422 (datos no v
 Reglas de acceso:
 - Las contraseñas se guardan con hash `scrypt`; mínimo 10 caracteres.
 - Un correo inexistente y una contraseña incorrecta reciben la misma respuesta.
+- Cada token pertenece a una sesión registrada en la tabla `sesion`. Al cerrar sesión o renovarla,
+  el token anterior deja de aceptarse aunque no haya vencido. Cerrar una sesión no afecta a las demás.
 - Una cuenta desactivada no puede ingresar y pierde la sesión que tuviera abierta.
-- El administrador no puede desactivarse ni quitarse su propio rol.
+- El administrador no puede desactivarse, eliminarse ni quitarse su propio rol.
+- Una cuenta con información asociada (grupos, diagnósticos) no se elimina: se desactiva.
 
 ## Pruebas
 

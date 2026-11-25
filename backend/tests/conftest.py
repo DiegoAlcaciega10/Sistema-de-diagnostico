@@ -55,7 +55,7 @@ def config() -> Configuracion:
 def cliente(abrir_conexion: AbridorConexiones, config: Configuracion) -> Iterator[TestClient]:
     conexion = abrir_conexion()
     try:
-        conexion.execute("TRUNCATE usuario RESTART IDENTITY")
+        conexion.execute("TRUNCATE usuario RESTART IDENTITY CASCADE")
     finally:
         conexion.close()
     with TestClient(crear_app(config, abrir_conexion)) as cliente_http:

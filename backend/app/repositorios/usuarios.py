@@ -7,7 +7,7 @@ from typing import Any
 from app.db import Conexion, Fila
 
 COLUMNAS_PUBLICAS = "id, nombre, correo, rol, activo, creado_en"
-_COLUMNAS_ACTUALIZABLES = ("nombre", "rol", "activo", "hash_contrasena")
+_COLUMNAS_ACTUALIZABLES = ("nombre", "correo", "rol", "activo", "hash_contrasena")
 
 
 def buscar_por_correo(conexion: Conexion, correo: str) -> Fila | None:
@@ -29,12 +29,14 @@ def listar(conexion: Conexion) -> list[Fila]:
     ).fetchall()
 
 
-def crear(conexion: Conexion, nombre: str, correo: str, hash_contrasena: str, rol: str) -> Fila | None:
+def crear(
+    conexion: Conexion, nombre: str, correo: str, hash_contrasena: str, rol: str, activo: bool = True
+) -> Fila | None:
     """Inserta un usuario. Devuelve ``None`` si el correo ya está registrado."""
     return conexion.execute(
-        "INSERT INTO usuario (nombre, correo, hash_contrasena, rol) VALUES (%s, %s, %s, %s) "
+        "INSERT INTO usuario (nombre, correo, hash_contrasena, rol, activo) VALUES (%s, %s, %s, %s, %s) "
         f"ON CONFLICT DO NOTHING RETURNING {COLUMNAS_PUBLICAS}",
-        [nombre.strip(), correo.strip(), hash_contrasena, rol],
+        [nombre.strip(), correo.strip(), hash_contrasena, rol, activo],
     ).fetchone()
 
 
@@ -49,3 +51,12 @@ def actualizar(conexion: Conexion, usuario_id: int, cambios: dict[str, Any]) -> 
         f"RETURNING {COLUMNAS_PUBLICAS}",
         [*(cambios[c] for c in columnas), usuario_id],
     ).fetchone()
+
+
+def eliminar(conexion: Conexion, usuario_id: int) -> bool:
+    """Borra el usuario. Devuelve ``False`` si no existía.
+
+    PostgreSQL rechaza el borrado (violación de clave foránea) si otras tablas lo referencian.
+    """
+    fila = conexion.execute("DELETE FROM usuario WHERE id = %s RETURNING id", [usuario_id]).fetchone()
+    return fila is not None

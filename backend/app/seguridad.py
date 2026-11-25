@@ -6,7 +6,7 @@ import base64
 import hashlib
 import hmac
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 import jwt
 
@@ -57,23 +57,27 @@ class TokenInvalido(Exception):
     """El token falta, está mal formado, expiró o su firma no es válida."""
 
 
-def emitir_token(usuario_id: int, rol: str, secreto: str, minutos_validez: int) -> str:
-    ahora = datetime.now(timezone.utc)
+def emitir_token(
+    usuario_id: int, rol: str, sesion_id: str, secreto: str, emitido_en: datetime, expira_en: datetime
+) -> str:
+    """Firma un token ligado a una sesión; ``sid`` permite revocarlo antes de su vencimiento."""
     contenido = {
         "sub": str(usuario_id),
         "rol": rol,
-        "iat": ahora,
-        "exp": ahora + timedelta(minutes=minutos_validez),
+        "sid": sesion_id,
+        "iat": emitido_en,
+        "exp": expira_en,
     }
     return jwt.encode(contenido, secreto, algorithm=_ALGORITMO_JWT)
 
 
-def leer_token(token: str, secreto: str) -> int:
-    """Devuelve el id del usuario del token o lanza ``TokenInvalido``."""
+def leer_token(token: str, secreto: str) -> tuple[int, str]:
+    """Devuelve ``(usuario_id, sesion_id)`` del token o lanza ``TokenInvalido``."""
     try:
         contenido = jwt.decode(
-            token, secreto, algorithms=[_ALGORITMO_JWT], options={"require": ["sub", "exp", "iat"]}
+            token, secreto, algorithms=[_ALGORITMO_JWT],
+            options={"require": ["sub", "sid", "exp", "iat"]},
         )
-        return int(contenido["sub"])
+        return int(contenido["sub"]), str(contenido["sid"])
     except (jwt.PyJWTError, ValueError) as exc:
         raise TokenInvalido(str(exc)) from exc

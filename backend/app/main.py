@@ -28,7 +28,7 @@ def crear_app(config: Configuracion, abrir_conexion: AbridorConexiones | None = 
     app.add_middleware(
         CORSMiddleware,
         allow_origins=list(config.origenes_cors),
-        allow_methods=["GET", "POST", "PATCH"],
+        allow_methods=["GET", "POST", "PATCH", "DELETE"],
         allow_headers=["Authorization", "Content-Type"],
     )
     app.add_exception_handler(ErrorServicio, _manejar_error_servicio)
